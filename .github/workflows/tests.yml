@@ -34,7 +34,7 @@ jobs:
         run: poetry install
       
       - name: Build and install projet
-        run: poetry build && pip install dist/pydeb*.whl
+        run: poetry build && pip install dist/pyclang*.whl
       
       - name: Attempt to build the test file
         run: cd tests && python test.py

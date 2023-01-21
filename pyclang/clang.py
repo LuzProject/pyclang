@@ -1,7 +1,7 @@
 # module imports
 from functools import reduce
-from os import path
-from subprocess import run
+from os import environ, path
+from subprocess import check_output
 
 # local imports
 from .utils import cmd_in_path
@@ -14,11 +14,16 @@ class CCompiler:
         self.clang_args = []
 
     def __format_command(self, file: str, outfile: str = None, args: list = []):
+        returnValue = ''
         outfileF = outfile if outfile else f'{file.replace(".c", "")}.o'
         argsF = reduce(lambda a, b: a + " " + str(b), args) if args else ''
         clang_argsF = reduce(lambda a, b: a + " " + str(b),
                              self.clang_args) if self.clang_args else ''
-        return f'{self.clang_path} {argsF} {clang_argsF} {file} -o {outfileF}'.split(' ')
+        if self.clang_args is not None and self.clang_args != []:
+            returnValue = f'{self.clang_path} {argsF} {clang_argsF} {file} -o {outfileF}'
+        else:
+            returnValue = f'{self.clang_path} {argsF} {file} -o {outfileF}'
+        return returnValue
 
     def set_compiler(self, compiler: str):
         """Set compiler to use.
@@ -57,4 +62,4 @@ class CCompiler:
             raise FileNotFoundError(
                 f'Passed file to compile "{file}" does not exist')
         # run compile command
-        run(self.__format_command(file, outfile, args), shell=False)
+        check_output(self.__format_command(file, outfile, args), env=environ.copy(), shell=True)

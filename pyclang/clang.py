@@ -58,8 +58,15 @@ class CCompiler:
             raise FileNotFoundError(
                 'No compiler was manually set, and "clang" was not found in path.')
         # ensure file exists
-        if not path.exists(file):
-            raise FileNotFoundError(
-                f'Passed file to compile "{file}" does not exist')
+        file_split = file.split(' ')
+        if len(file_split) > 1:
+            for f in file_split:
+                if not path.exists(f):
+                    raise FileNotFoundError(
+                        f'Passed file to compile "{f}" does not exist')
+        else:
+            if not path.exists(file):
+                raise FileNotFoundError(
+                    f'Passed file to compile "{file}" does not exist')
         # run compile command
         check_output(self.__format_command(file, outfile, args), env=environ.copy(), shell=True)

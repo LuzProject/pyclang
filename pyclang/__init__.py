@@ -2,3 +2,4 @@
 
 # imports
 from .clang import CCompiler
+from .swiftc import SwiftCompiler

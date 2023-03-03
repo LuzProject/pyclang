@@ -1,7 +1,7 @@
 # module imports
 from functools import reduce
+from multiprocessing import Lock
 from os import environ
-from pathlib import PosixPath
 from subprocess import check_output
 
 # local imports
@@ -9,10 +9,11 @@ from .utils import cmd_in_path
 
 
 class CCompiler:
-    def __init__(self):
+    def __init__(self, lock: Lock = None):
         # set clang and clang_args
         self.clang_path = cmd_in_path('clang')
         self.clang_args = []
+        self.lock = lock
 
     def __format_command(self, file: str, outfile: str = None, args: list = []):
         returnValue = ''
@@ -70,5 +71,8 @@ class CCompiler:
                     f'Passed file to compile "{f}" does not exist')
             files_to_compile += f'{f} '
         # run compile command
-        check_output(self.__format_command(files_to_compile, outfile, args),
-                     env=environ.copy(), shell=True)
+        if self.lock is not None:
+            with self.lock:
+                return check_output(self.__format_command(files_to_compile, outfile, args), env=environ.copy(), shell=True)
+        else:
+            check_output(self.__format_command(files_to_compile, outfile, args), env=environ.copy(), shell=True)

@@ -1,5 +1,6 @@
 # module imports
 from functools import reduce
+from multiprocessing import Lock
 from os import environ
 from pathlib import PosixPath
 from subprocess import check_output
@@ -9,10 +10,11 @@ from .utils import cmd_in_path
 
 
 class SwiftCompiler:
-    def __init__(self):
+    def __init__(self, lock: Lock = None):
         # set swift and swift_args
         self.swift_path = cmd_in_path('swiftc')
         self.swift_args = []
+        self.lock = lock
 
     def __format_command(self, file: str, outfile: str = None, args: list = []):
         returnValue = ''
@@ -70,5 +72,10 @@ class SwiftCompiler:
                     f'Passed file to compile "{f}" does not exist')
             files_to_compile += f'{f} '
         # run compile command
-        check_output(self.__format_command(files_to_compile, outfile, args),
-                     env=environ.copy(), shell=True)
+        if self.lock is not None:
+            with self.lock:
+                return check_output(self.__format_command(files_to_compile, outfile, args),
+                                    env=environ.copy(), shell=True)
+        else:
+            check_output(self.__format_command(files_to_compile, outfile, args),
+                        env=environ.copy(), shell=True)
